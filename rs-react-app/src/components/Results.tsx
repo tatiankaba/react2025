@@ -1,5 +1,5 @@
+import React, { Component } from "react";
 import "./results.css";
-import { useEffect, useState } from "react";
 
 interface Props {
   query: string;
@@ -19,18 +19,38 @@ interface AnimalSearchResponse {
   animals: Pet[];
 }
 
-export default function Results({ query }: Props) {
-  const [loading, setLoading] = useState(false);
-  const [pets, setPets] = useState<Pet[]>([]);
-  const [error, setError] = useState<string | null>(null);
+interface State {
+  pets: Pet[];
+  loading: boolean;
+  error: string | null;
+}
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
+export default class Results extends Component<Props, State> {
+  state: State = {
+    pets: [],
+    loading: false,
+    error: null,
+  };
+
+  componentDidMount() {
+    this.fetchData(this.props.query);
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.query !== this.props.query) {
+      this.fetchData(this.props.query);
+    }
+  }
+
+  fetchData(query: string) {
+    this.setState({ loading: true, error: null });
 
     const url = !query
       ? "https://stapi.co/api/v1/rest/animal/search?pageNumber=0&pageSize=10"
-      : `https://stapi.co/api/v1/rest/animal/search?name=${encodeURIComponent(query)}&pageNumber=0&pageSize=1000`;
+      : `https://stapi.co/api/v1/rest/animal/search?name=${encodeURIComponent(
+          query,
+        )}&pageNumber=0&pageSize=1000`;
+
     fetch(url)
       .then((res) => {
         if (!res.ok) throw new Error(`Error: ${res.status}`);
@@ -43,38 +63,42 @@ export default function Results({ query }: Props) {
             )
           : data.animals;
 
-        setPets(filteredPets);
+        this.setState({ pets: filteredPets });
       })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [query]);
+      .catch((error: Error) => this.setState({ error: error.message }))
+      .finally(() => this.setState({ loading: false }));
+  }
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+  render() {
+    const { loading, error, pets } = this.state;
 
-  return (
-    <section>
-      <h2>Results</h2>
-      {pets.length === 0 ? (
-        <p>No animals</p>
-      ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Earth Animal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pets.map((pet) => (
-              <tr key={pet.uid}>
-                <td>{pet.name}</td>
-                <td>{pet.earthAnimal ? "Да" : "Нет"}</td>
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p style={{ color: "red" }}>Error: {error}</p>;
+
+    return (
+      <section>
+        <h2>Results</h2>
+        {pets.length === 0 ? (
+          <p>No animals</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Earth Animal</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </section>
-  );
+            </thead>
+            <tbody>
+              {pets.map((pet) => (
+                <tr key={pet.uid}>
+                  <td>{pet.name}</td>
+                  <td>{pet.earthAnimal ? "Да" : "Нет"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    );
+  }
 }

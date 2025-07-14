@@ -1,43 +1,52 @@
-import { useState } from "react";
+import React, { Component } from "react";
+import type { FormEvent, ChangeEvent } from "react";
 
 interface Props {
   onSearch: (value: string) => void;
 }
 
-export default function TopControls({ onSearch }: Props) {
-  const [name, setName] = useState(localStorage.getItem("name") || "");
+interface State {
+  name: string;
+}
 
-  function handleClick(event: React.FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    if (name.trim().length === 0) return;
-    localStorage.setItem("name", name.trim());
-    onSearch(name.trim());
+export default class TopControls extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      name: localStorage.getItem("name") || "",
+    };
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
   }
 
-  // function debounce(time: number, callback: () => void): () => void {
-  // let timer: ReturnType<typeof setTimeout>;
+  handleInputChange(event: ChangeEvent<HTMLInputElement>) {
+    this.setState({ name: event.target.value });
+  }
 
-  // return function (): void {
-  //     clearTimeout(timer);
-  //     timer = setTimeout(() => {
-  //     callback();
-  //     }, time);
-  // };
-  // }
+  handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedName = this.state.name.trim();
+    if (trimmedName.length === 0) return;
+    localStorage.setItem("name", trimmedName);
+    this.props.onSearch(trimmedName);
+  }
 
-  return (
-    <section>
-      <h2>Top controls</h2>
-      <form action="#" onSubmit={handleClick}>
-        <input
-          type="search"
-          name="search"
-          id="search"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-        <button type="submit">Search</button>
-      </form>
-    </section>
-  );
+  render() {
+    return (
+      <section>
+        <h2>Top controls</h2>
+        <form onSubmit={this.handleSubmit}>
+          <input
+            type="search"
+            name="search"
+            id="search"
+            value={this.state.name}
+            onChange={this.handleInputChange}
+          />
+          <button type="submit">Search</button>
+        </form>
+      </section>
+    );
+  }
 }
