@@ -7,13 +7,12 @@ interface State {
   query: string;
 }
 
-export default class App extends Component<{}, State> {
-  constructor(props: {}) {
+export default class App extends Component<Record<string, never>, State> {
+  constructor(props: Record<string, never>) {
     super(props);
     this.state = {
       query: localStorage.getItem("name") || "",
     };
-
     this.handleSearch = this.handleSearch.bind(this);
   }
 
