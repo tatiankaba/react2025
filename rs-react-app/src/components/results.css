@@ -1,0 +1,11 @@
+th {
+  border: 1px solid white;
+  padding: 8px;
+  background: "#f2f2f2";
+  text-align: "left";
+}
+
+td {
+  border: 1px solid white;
+  padding: 8px;
+}
